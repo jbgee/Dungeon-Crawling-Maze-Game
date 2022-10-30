@@ -74,7 +74,7 @@ uint8_t Matrix[][6]={{B11111111,B11111111,B11111111,B11111111,B11111111,B1111111
                      {B10100101,B01010001,B10000000,B00101011,B10001110,B11101111},
                      {B11111111,B11111111,B11111111,B11111111,B11111111,B11111111}};
 
-enum direction{UP,DOWN,LEFT,RIGHT,NONE};
+enum direction{UP,DOWN,RIGHT,LEFT,NONE};
 void setup() {
    Serial.begin(9600);
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
@@ -94,41 +94,10 @@ void setup() {
 void loop() {
   direction movement = getDirection();
   
-  if(movement == UP){  //Upward Movement if Joystick is facing upwards!
-    if(!((Matrix[(yPosition-1+printOriginY)][(printOriginX+xPosition/8)])&(1<<(7-xPosition%BLOCK_SIZE)))){ 
-      clearPlayer(xPosition,yPosition);        //Clears Previous Position before Drawing the Next
-      yPosition = yPosition - 1;            //Updates Next Position
-      drawPlayer(xPosition,yPosition);   
-      display.display();
-      delay(150);
-    }
-  }
-  else if(movement == DOWN){ //Downward Motion
-    if(!((Matrix[(yPosition+1+printOriginY)][(printOriginX+xPosition/8)])&(1<<(7-xPosition%8)))){                   //Checks adjacent Grid value  
-      clearPlayer(xPosition,yPosition);             //Clears Previous Position before Drawing the Next
-      yPosition = yPosition + 1;                 //Updates the Next Position
-      drawPlayer(xPosition,yPosition);   
-      display.display();
-      delay(150);
-    }
-  }
-  else if(movement == RIGHT){  //MOVING RIGHT ON SCREEN
-    if(!((Matrix[(yPosition+printOriginY)][(printOriginX+(xPosition+1)/8)])&(1<<(7-(xPosition+1)%8)))){ //not against a wall
-      clearPlayer(xPosition,yPosition);          //Clears Previous Position before Drawing the Next
-      xPosition = xPosition + 1;              //Updates Next Position
-      drawPlayer(xPosition,yPosition);   
-      display.display();
-      delay(150);
-    }
-  }
-  else if(movement == LEFT){  //MOVING LEFT ON SCREEN
-    if(!((Matrix[(yPosition+printOriginY)][(printOriginX+(xPosition-1)/8)])&(1<<(7-(xPosition-1)%8)))){
-      clearPlayer(xPosition,yPosition);      //Clears Previous Position before Drawing the Next
-      xPosition = xPosition - 1;          //Updates Next Position
-      drawPlayer(xPosition,yPosition);  
+  if(movement != NONE){  //Upward Movement if Joystick is facing upwards!
+      movePlayer(movement);
       display.display();
       delay(150);     
-    }
   }
 
   if(isOffScreen()){
@@ -208,6 +177,35 @@ void clearPlayer(int x,int y){                  //Clears an 8x8 square starting 
   display.fillRect(x*BLOCK_SIZE,y*BLOCK_SIZE,BLOCK_SIZE,BLOCK_SIZE,BLACK);
   display.display();
   return;
+}
+
+void movePlayer(direction playerDirection){
+  if(directionIsClear(playerDirection)){
+    clearPlayer(xPosition,yPosition);
+    if(playerDirection==UP)
+      yPosition -= 1;
+    if(playerDirection==DOWN)
+      yPosition += 1;
+    if(playerDirection==RIGHT)
+      xPosition += 1;
+    if(playerDirection==LEFT)
+      xPosition -= 1;
+    drawPlayer(xPosition,yPosition);
+  }
+  return;
+}
+
+bool directionIsClear(direction inputDirection){
+  if((inputDirection==UP) && ((Matrix[(yPosition-1+printOriginY)][(printOriginX+xPosition/8)])&(1<<(7-xPosition%8))))
+    return false;
+  else if((inputDirection==DOWN) && ((Matrix[(yPosition+1+printOriginY)][(printOriginX+xPosition/8)])&(1<<(7-xPosition%8))))
+    return false;
+  else if((inputDirection==RIGHT) && ((Matrix[(yPosition+printOriginY)][(printOriginX+(xPosition+1)/8)])&(1<<(7-(xPosition+1)%8))))
+    return false;
+  else if((inputDirection==LEFT) && ((Matrix[(yPosition+printOriginY)][(printOriginX+(xPosition-1)/8)])&(1<<(7-(xPosition-1)%8))))
+    return false;
+  else
+    return true;
 }
 
 bool isOffScreen(){
