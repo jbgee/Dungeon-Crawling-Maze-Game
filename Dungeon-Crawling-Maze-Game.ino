@@ -15,14 +15,16 @@
 #define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-int8_t xPosition = 6;       //Delcare the starting Position of the Figure!!
-int8_t yPosition = 6;
+int8_t SPEED_FACTOR = 1;
 
-uint8_t endx = 3;              //Declare the Position of the ending flag
-uint8_t endy = 6; 
+int8_t playerX = 6;       //Delcare the starting Position of the Figure!!
+int8_t playerY = 6;
 
-uint8_t endxpanel = 0;         //Defines the Top Left Corner of the Panel in which the final flag resides
-uint8_t endypanel = 16;
+uint8_t endX = 3;              //Declare the Position of the ending flag
+uint8_t endY = 6; 
+
+uint8_t endXPanel = 0;         //Defines the Top Left Corner of the Panel in which the final flag resides
+uint8_t endYPanel = 16;
 
 uint8_t printOriginX = 0;      //Must also declare the Top Left Corner of the Panel You wish to start on !
 uint8_t printOriginY = 16;
@@ -36,7 +38,7 @@ uint8_t player[8] ={B00000000, //Declares the Matrix used to draw the game figur
                  B01100110,
                  B00000000};
                         
-uint8_t flag[8] = {B00000000, //Defines the Matrix used to draw the end flags
+uint8_t end[8] = {B00000000, //Defines the Matrix used to draw the end flags
                    B00011110,
                    B00011110,
                    B00011110,
@@ -47,7 +49,7 @@ uint8_t flag[8] = {B00000000, //Defines the Matrix used to draw the end flags
     
 
                                
-uint8_t Matrix[][6]={{B11111111,B11111111,B11111111,B11111111,B11111111,B11111111},  //Declare the matrix as unsigned char so that each value is stored in a single bit instead of 8 or 16
+uint8_t maze[][6]={{B11111111,B11111111,B11111111,B11111111,B11111111,B11111111},  //Declare the matrix as unsigned char so that each value is stored in a single bit instead of 8 or 16
                      {B10001100,B00110101,B10100010,B00000001,B11010100,B00010101},  // Threfore instead of using 24x48 matrix of ints each using 16 bits each the new matrix
                      {B10100011,B10000001,B10001000,B10111101,B10000011,B10000101},  // uses 24x6 matrix of unsigned char using 8 bits each saving lots of Dynamic Memory
                      {B10101000,B10111101,B10111101,B10100001,B10111000,B10111101},
@@ -92,37 +94,19 @@ void setup() {
 }
 
 void loop() {
-  direction movement = getDirection();
+  direction inputDirection = getDirection();
   
-  if(movement != NONE){  //Upward Movement if Joystick is facing upwards!
-      movePlayer(movement);
-      display.display();
-      delay(150);     
-  }
+  if(inputDirection != NONE){  //Upward Movement if Joystick is facing upwards!
+    movePlayer(inputDirection);
+    display.display();
+    delay(150*SPEED_FACTOR);
+    if(isOffScreen()){
+      scrollScreen();
+      }     
+    }
 
-  if(isOffScreen()){
-    scrollScreen();
-  }
-
-  if((printOriginX==endxpanel)&&(printOriginY==endypanel)&&(yPosition==6)&&(xPosition==3)){   //Checks to see if Game Piece has arrived at final Location
-    unsigned long t;
-    t= millis();
-    t= t/1000;
-    char buf[8];
-    ltoa(t,buf,10);
-    display.clearDisplay();                             //Prints Congratulations Message and User Score/Time in Seconds
-    display.setTextSize(2); // Draw 2X-scale text
-    display.setTextColor(WHITE);
-    display.setCursor(10, 0);
-    display.println(F("CONGRATS"));
-    display.setCursor(12,18);
-    display.println(F("YOU WIN!"));
-    display.setCursor(8,36);
-    display.println(F("TIME:"));
-    display.setCursor(67,36);
-    display.println(buf);
-    display.display();    
-    while(1){};
+  if(gameIsFinished()){   //Checks to see if Game Piece has arrived at final Location
+    endGame();
   }
 }
 
@@ -142,40 +126,34 @@ direction getDirection(){
 }
 
 void drawMaze(int y,int x,int originx, int originy){  //Function takes Current X and Y matrix values and origin from which to print their grids
-for(int i = 0;i<8;i++){
-  for(int j = 0;j<16;j++){
-    if(((Matrix[i+y][(x+j/8)])&(1<<(7-j%8)))){    //Uses bit masking to read the individual bit values in the matrix and test for 1s or 0s
-      display.fillRect(originx+j*BLOCK_SIZE,originy+i*BLOCK_SIZE,BLOCK_SIZE,BLOCK_SIZE,WHITE);
-      display.fillRect(originx+(j*BLOCK_SIZE)+2,originy+(i*BLOCK_SIZE)+2,BLOCK_SIZE/2,BLOCK_SIZE/2,BLACK);
+for(int mazeRow = 0;mazeRow<8;mazeRow++){
+  for(int mazeColumn = 0;mazeColumn<16;mazeColumn++){
+    if(((maze[mazeRow+y][(x+mazeColumn/8)])&(1<<(7-mazeColumn%8)))){    //Uses bit masking to read the individual bit values in the matrix and test for 1s or 0s
+      display.fillRect(originx+mazeColumn*BLOCK_SIZE,originy+mazeRow*BLOCK_SIZE,BLOCK_SIZE,BLOCK_SIZE,WHITE);
+      display.fillRect(originx+(mazeColumn*BLOCK_SIZE)+BLOCK_SIZE/4,originy+(mazeRow*BLOCK_SIZE)+BLOCK_SIZE/4,BLOCK_SIZE/2,BLOCK_SIZE/2,BLACK);
     }    
   }
  }
- if((y==endypanel)&&(x==endxpanel)){          //If on the FInal Panel, Prints the Flag for Final Position
- for(int m=0;m<8;m++){
-        for(int n=0;n<8;n++){
-          if(flag[m]&(1<<7-n)){                //Draws Flag From Matrix Peviously Defining 1s and 0s
-            display.drawPixel((endx*BLOCK_SIZE)+n+originx,(endy*BLOCK_SIZE)+m+originy,WHITE);          
-          }
-        }
-  }
+ if((y==endYPanel)&&(x==endXPanel)){          //If on the Final Panel, Prints the Flag in Final Position
+  drawEnd(originx,originy);
  }
-  return;
-}
-
-void drawPlayer(){                        //Function to Draw game Piece Given Coordinates on Current Screen if viewed as an 8x16 grid
-  for(int m=0;m<8;m++){
-        for(int n=0;n<8;n++){
-          if((player[m])&(1<<7-n)){
-          display.drawPixel((xPosition*BLOCK_SIZE)+n,(yPosition*BLOCK_SIZE)+m,WHITE);
-          }
-        }
-  }
   return;
 }
 
 void clearPlayer(){                  //Clears an 8x8 square starting from Top Left Corner Provided to Function
-  display.fillRect(xPosition*BLOCK_SIZE,yPosition*BLOCK_SIZE,BLOCK_SIZE,BLOCK_SIZE,BLACK);
+  display.fillRect(playerX*BLOCK_SIZE,playerY*BLOCK_SIZE,BLOCK_SIZE,BLOCK_SIZE,BLACK);
   display.display();
+  return;
+}
+
+void drawPlayer(){                   //Function to Draw game Piece Given Coordinates on Current Screen if viewed as an 8x16 grid
+  for(int m=0;m<8;m++){
+        for(int n=0;n<8;n++){
+          if((player[m])&(1<<7-n)){
+          display.drawPixel((playerX*BLOCK_SIZE)+n,(playerY*BLOCK_SIZE)+m,WHITE);
+          }
+        }
+  }
   return;
 }
 
@@ -183,33 +161,33 @@ void movePlayer(direction playerDirection){
   if(directionIsClear(playerDirection)){
     clearPlayer();
     if(playerDirection==UP)
-      yPosition -= 1;
+      playerY -= 1;
     if(playerDirection==DOWN)
-      yPosition += 1;
+      playerY += 1;
     if(playerDirection==RIGHT)
-      xPosition += 1;
+      playerX += 1;
     if(playerDirection==LEFT)
-      xPosition -= 1;
+      playerX -= 1;
     drawPlayer();
   }
   return;
 }
 
-bool directionIsClear(direction inputDirection){
-  if((inputDirection==UP) && ((Matrix[(yPosition-1+printOriginY)][(printOriginX+xPosition/8)])&(1<<(7-xPosition%8))))
+bool directionIsClear(direction playerDirection){
+  if((playerDirection==UP) && ((maze[(playerY-1+printOriginY)][(printOriginX+playerX/8)])&(1<<(7-playerX%8))))
     return false;
-  else if((inputDirection==DOWN) && ((Matrix[(yPosition+1+printOriginY)][(printOriginX+xPosition/8)])&(1<<(7-xPosition%8))))
+  else if((playerDirection==DOWN) && ((maze[(playerY+1+printOriginY)][(printOriginX+playerX/8)])&(1<<(7-playerX%8))))
     return false;
-  else if((inputDirection==RIGHT) && ((Matrix[(yPosition+printOriginY)][(printOriginX+(xPosition+1)/8)])&(1<<(7-(xPosition+1)%8))))
+  else if((playerDirection==RIGHT) && ((maze[(playerY+printOriginY)][(printOriginX+(playerX+1)/8)])&(1<<(7-(playerX+1)%8))))
     return false;
-  else if((inputDirection==LEFT) && ((Matrix[(yPosition+printOriginY)][(printOriginX+(xPosition-1)/8)])&(1<<(7-(xPosition-1)%8))))
+  else if((playerDirection==LEFT) && ((maze[(playerY+printOriginY)][(printOriginX+(playerX-1)/8)])&(1<<(7-(playerX-1)%8))))
     return false;
   else
     return true;
 }
 
 bool isOffScreen(){
-  if((yPosition==-1)||(yPosition==8)||(xPosition==16)||(xPosition==-1))
+  if((playerY==-1)||(playerY==8)||(playerX==16)||(playerX==-1))
     return true;
   else
     return false;
@@ -217,37 +195,72 @@ bool isOffScreen(){
 
 void scrollScreen(){
   int8_t scrollDirection = 0;
-  if((xPosition==16)||(xPosition==-1)){
-    if(xPosition==16)
+  if((playerX==16)||(playerX==-1)){
+    if(playerX==16)
       scrollDirection = -1;
-    else if(xPosition == -1)
+    else if(playerX == -1)
       scrollDirection = 1;
     for(int m=1;m<=16;m++){
       display.clearDisplay();
       drawMaze(printOriginY,printOriginX,m*BLOCK_SIZE*scrollDirection,0);
-      xPosition = xPosition + scrollDirection;
+      playerX = playerX + scrollDirection;
       drawPlayer();
       drawMaze(printOriginY,printOriginX+(-2*scrollDirection),(-128*scrollDirection)+(m*BLOCK_SIZE*scrollDirection),0);
       display.display();
-      delay(100);
+      delay(100*SPEED_FACTOR);
       }
       printOriginX=printOriginX+-2*scrollDirection;
       return;
   }
   else{
-    if(yPosition==8)
+    if(playerY==8)
       scrollDirection = -1;
-    else if(yPosition == -1)
+    else if(playerY == -1)
       scrollDirection = 1;
     for(int m=1;m<=8;m++){
         display.clearDisplay();
         drawMaze(printOriginY+-8*scrollDirection,printOriginX,0,(-64*scrollDirection)+m*BLOCK_SIZE*scrollDirection);
-        yPosition = yPosition + scrollDirection;
+        playerY = playerY + scrollDirection;
         drawPlayer();
         drawMaze(printOriginY,printOriginX,0,m*BLOCK_SIZE*scrollDirection);
         display.display();
-        delay(125);
+        delay(100*SPEED_FACTOR);
         }
       printOriginY=printOriginY+-8*scrollDirection;
   }
+}
+
+void drawEnd(int originx,int originy){
+  for(int m=0;m<8;m++){
+        for(int n=0;n<8;n++){
+          if(end[m]&(1<<7-n)){                //Draws Flag From Matrix Peviously Defining 1s and 0s
+            display.drawPixel((endX*BLOCK_SIZE)+n+originx,(endY*BLOCK_SIZE)+m+originy,WHITE);          
+          }
+        }
+  }
+}
+
+bool gameIsFinished(){
+  return ((printOriginX==endXPanel)&&(printOriginY==endYPanel)&&(playerY==6)&&(playerX==3));
+}
+
+void endGame(){
+  unsigned long t;
+  t= millis();
+  t= t/1000;
+  char buf[8];
+  ltoa(t,buf,10);
+  display.clearDisplay();                             //Prints Congratulations Message and User Score/Time in Seconds
+  display.setTextSize(2); // Draw 2X-scale text
+  display.setTextColor(WHITE);
+  display.setCursor(10, 0);
+  display.println(F("CONGRATS"));
+  display.setCursor(12,18);
+  display.println(F("YOU WIN!"));
+  display.setCursor(8,36);
+  display.println(F("TIME:"));
+  display.setCursor(67,36);
+  display.println(buf);
+  display.display();    
+  while(1){};
 }
