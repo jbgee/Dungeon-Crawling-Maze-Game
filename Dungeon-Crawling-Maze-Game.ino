@@ -85,7 +85,7 @@ void setup() {
 
    display.clearDisplay();      //Clears Initial Display Then draws the Initial Maze Panel and Initial Game Figure Location
    drawMaze(printOriginY,printOriginX,0,0);
-   drawPlayer(xPosition,yPosition);
+   drawPlayer();
    display.display();
    delay(500);
  
@@ -162,26 +162,26 @@ for(int i = 0;i<8;i++){
   return;
 }
 
-void drawPlayer(int j,int i){                        //Function to Draw game Piece Given Coordinates on Current Screen if viewed as an 8x16 grid
+void drawPlayer(){                        //Function to Draw game Piece Given Coordinates on Current Screen if viewed as an 8x16 grid
   for(int m=0;m<8;m++){
         for(int n=0;n<8;n++){
           if((player[m])&(1<<7-n)){
-          display.drawPixel((j*BLOCK_SIZE)+n,(i*BLOCK_SIZE)+m,WHITE);
+          display.drawPixel((xPosition*BLOCK_SIZE)+n,(yPosition*BLOCK_SIZE)+m,WHITE);
           }
         }
   }
   return;
 }
 
-void clearPlayer(int x,int y){                  //Clears an 8x8 square starting from Top Left Corner Provided to Function
-  display.fillRect(x*BLOCK_SIZE,y*BLOCK_SIZE,BLOCK_SIZE,BLOCK_SIZE,BLACK);
+void clearPlayer(){                  //Clears an 8x8 square starting from Top Left Corner Provided to Function
+  display.fillRect(xPosition*BLOCK_SIZE,yPosition*BLOCK_SIZE,BLOCK_SIZE,BLOCK_SIZE,BLACK);
   display.display();
   return;
 }
 
 void movePlayer(direction playerDirection){
   if(directionIsClear(playerDirection)){
-    clearPlayer(xPosition,yPosition);
+    clearPlayer();
     if(playerDirection==UP)
       yPosition -= 1;
     if(playerDirection==DOWN)
@@ -190,7 +190,7 @@ void movePlayer(direction playerDirection){
       xPosition += 1;
     if(playerDirection==LEFT)
       xPosition -= 1;
-    drawPlayer(xPosition,yPosition);
+    drawPlayer();
   }
   return;
 }
@@ -226,7 +226,7 @@ void scrollScreen(){
       display.clearDisplay();
       drawMaze(printOriginY,printOriginX,m*BLOCK_SIZE*scrollDirection,0);
       xPosition = xPosition + scrollDirection;
-      drawPlayer(xPosition,yPosition);
+      drawPlayer();
       drawMaze(printOriginY,printOriginX+(-2*scrollDirection),(-128*scrollDirection)+(m*BLOCK_SIZE*scrollDirection),0);
       display.display();
       delay(100);
@@ -243,7 +243,7 @@ void scrollScreen(){
         display.clearDisplay();
         drawMaze(printOriginY+-8*scrollDirection,printOriginX,0,(-64*scrollDirection)+m*BLOCK_SIZE*scrollDirection);
         yPosition = yPosition + scrollDirection;
-        drawPlayer(xPosition,yPosition);
+        drawPlayer();
         drawMaze(printOriginY,printOriginX,0,m*BLOCK_SIZE*scrollDirection);
         display.display();
         delay(125);
