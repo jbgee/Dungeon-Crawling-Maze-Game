@@ -101,85 +101,38 @@ void loop() {
       drawPlayer(xPosition,yPosition);   
       display.display();
       delay(150);
-    if(yPosition==-1){                  //SCROLLS UPWARD TO REVEAL NEXT PANEL
-        for(int m=1;m<=8;m++){
-          display.clearDisplay();
-          drawMaze(printOriginY-8,printOriginX,0,-64+m*BLOCK_SIZE);
-          yPosition = yPosition + 1;
-          drawPlayer(xPosition,yPosition);
-          drawMaze(printOriginY,printOriginX,0,m*8);
-          display.display();
-          delay(150);
-          }
-        printOriginY=printOriginY-8;
-      }
     }
   }
-
-  if(movement == DOWN){ //Downward Motion
+  else if(movement == DOWN){ //Downward Motion
     if(!((Matrix[(yPosition+1+printOriginY)][(printOriginX+xPosition/8)])&(1<<(7-xPosition%8)))){                   //Checks adjacent Grid value  
       clearPlayer(xPosition,yPosition);             //Clears Previous Position before Drawing the Next
       yPosition = yPosition + 1;                 //Updates the Next Position
       drawPlayer(xPosition,yPosition);   
       display.display();
       delay(150);
-    if(yPosition==8){                      //SCROLLS DOWNARD TO REVEAL NEXT PANEL
-      for(int m=1;m<=8;m++){
-        display.clearDisplay();
-        drawMaze(printOriginY+8,printOriginX,0,+64-m*BLOCK_SIZE);
-        yPosition = yPosition - 1;
-        drawPlayer(xPosition,yPosition);
-        drawMaze(printOriginY,printOriginX,0,-m*BLOCK_SIZE);
-        display.display();
-        delay(125);
-        }
-      printOriginY=printOriginY+8;
-      }
     }
   }
-
-  if(movement == RIGHT){  //MOVING RIGHT ON SCREEN
+  else if(movement == RIGHT){  //MOVING RIGHT ON SCREEN
     if(!((Matrix[(yPosition+printOriginY)][(printOriginX+(xPosition+1)/8)])&(1<<(7-(xPosition+1)%8)))){ //not against a wall
       clearPlayer(xPosition,yPosition);          //Clears Previous Position before Drawing the Next
       xPosition = xPosition + 1;              //Updates Next Position
       drawPlayer(xPosition,yPosition);   
       display.display();
       delay(150);
-      if(xPosition==16){                //SCROLLS RIGHT TO REVEAL NEXT PANEL OF MAZE
-        for(int m=1;m<=16;m++){
-          display.clearDisplay();
-          drawMaze(printOriginY,printOriginX,-m*BLOCK_SIZE,0);
-          xPosition = xPosition - 1;
-          drawPlayer(xPosition,yPosition);
-          drawMaze(printOriginY,printOriginX+2,128+(-m*BLOCK_SIZE),0);
-          display.display();
-          delay(100);
-          }
-        printOriginX=printOriginX+2;
-      }
     }
   }
-
-  if(movement == LEFT){  //MOVING LEFT ON SCREEN
+  else if(movement == LEFT){  //MOVING LEFT ON SCREEN
     if(!((Matrix[(yPosition+printOriginY)][(printOriginX+(xPosition-1)/8)])&(1<<(7-(xPosition-1)%8)))){
       clearPlayer(xPosition,yPosition);      //Clears Previous Position before Drawing the Next
       xPosition = xPosition - 1;          //Updates Next Position
       drawPlayer(xPosition,yPosition);  
       display.display();
       delay(150);     
-    if(xPosition==-1){                  //SCROLL LEFT TO REVEAL NEXT PANEL
-      for(int m=1;m<=16;m++){
-        display.clearDisplay();
-        drawMaze(printOriginY,printOriginX,m*BLOCK_SIZE,0);
-        xPosition = xPosition + 1;
-        drawPlayer(xPosition,yPosition);
-        drawMaze(printOriginY,printOriginX-2,-128+m*BLOCK_SIZE,0);
-        display.display();
-        delay(100);
-        }
-      printOriginX=printOriginX-2;
-      }
     }
+  }
+
+  if(isOffScreen()){
+    scrollScreen();
   }
 
   if((printOriginX==endxpanel)&&(printOriginY==endypanel)&&(yPosition==6)&&(xPosition==3)){   //Checks to see if Game Piece has arrived at final Location
@@ -259,7 +212,44 @@ void clearPlayer(int x,int y){                  //Clears an 8x8 square starting 
 
 bool isOffScreen(){
   if((yPosition==-1)||(yPosition==8)||(xPosition==16)||(xPosition==-1))
-    return True;
+    return true;
   else
-    return False;
+    return false;
+}
+
+void scrollScreen(){
+  int8_t scrollDirection = 0;
+  if((xPosition==16)||(xPosition==-1)){
+    if(xPosition==16)
+      scrollDirection = -1;
+    else if(xPosition == -1)
+      scrollDirection = 1;
+    for(int m=1;m<=16;m++){
+      display.clearDisplay();
+      drawMaze(printOriginY,printOriginX,m*BLOCK_SIZE*scrollDirection,0);
+      xPosition = xPosition + scrollDirection;
+      drawPlayer(xPosition,yPosition);
+      drawMaze(printOriginY,printOriginX+(-2*scrollDirection),(-128*scrollDirection)+(m*BLOCK_SIZE*scrollDirection),0);
+      display.display();
+      delay(100);
+      }
+      printOriginX=printOriginX+-2*scrollDirection;
+      return;
+  }
+  else{
+    if(yPosition==8)
+      scrollDirection = -1;
+    else if(yPosition == -1)
+      scrollDirection = 1;
+    for(int m=1;m<=8;m++){
+        display.clearDisplay();
+        drawMaze(printOriginY+-8*scrollDirection,printOriginX,0,(-64*scrollDirection)+m*BLOCK_SIZE*scrollDirection);
+        yPosition = yPosition + scrollDirection;
+        drawPlayer(xPosition,yPosition);
+        drawMaze(printOriginY,printOriginX,0,m*BLOCK_SIZE*scrollDirection);
+        display.display();
+        delay(125);
+        }
+      printOriginY=printOriginY+-8*scrollDirection;
+  }
 }
