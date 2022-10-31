@@ -7,76 +7,77 @@
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
-#define BLOCK_SIZE 8
+#define BLOCK_SIZE 8 //Number of pixels in maze block. Unit size on screen
 #define ANALOGXPIN 0 //analog pin connected to x output 
 #define ANALOGYPIN 1 //analog pin connected to y output
-
+#define INTBITS 16
 // Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
 #define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 int8_t SPEED_FACTOR = 1;
 
-int8_t playerX = 6;       //Delcare the starting Position of the Figure!!
+int8_t playerX = 11;       //Players position on screen 
 int8_t playerY = 6;
 
-uint8_t endX = 3;              //Declare the Position of the ending flag
+uint8_t endX = 3;              //Ending Position on screen
 uint8_t endY = 6; 
 
-uint8_t endXPanel = 0;         //Defines the Top Left Corner of the Panel in which the final flag resides
+uint8_t endXPanel = 0;         //Top left corner position when ending exists
 uint8_t endYPanel = 16;
 
-uint8_t printOriginX = 0;      //Must also declare the Top Left Corner of the Panel You wish to start on !
+uint8_t printOriginX = 1;      //Must also declare the Top Left Corner of the Panel To start on
 uint8_t printOriginY = 16;
 
-uint8_t player[8] ={B00000000, //Declares the Matrix used to draw the game figure
-                 B00011000,
-                 B00011000,
-                 B01111110,
-                 B00011000,
-                 B00100100,
-                 B01100110,
-                 B00000000};
+uint8_t player[8]={B00000000, //Declares the Matrix used to draw the game figure
+                   B00011000,
+                   B00011000,
+                   B01111110,
+                   B00011000,
+                   B00100100,
+                   B01100110,
+                   B00000000};
                         
 uint8_t end[8] = {B00000000, //Defines the Matrix used to draw the end flags
-                   B00011110,
-                   B00011110,
-                   B00011110,
-                   B00010000,
-                   B00010000,
-                   B01111110,
-                   B00000000};
+                  B00011110,
+                  B00011110,
+                  B00011110,
+                  B00010000,
+                  B00010000,
+                  B01111110,
+                  B00000000};
     
 
                                
-uint8_t maze[][6]={{B11111111,B11111111,B11111111,B11111111,B11111111,B11111111},  //Declare the matrix as unsigned char so that each value is stored in a single bit instead of 8 or 16
-                     {B10001100,B00110101,B10100010,B00000001,B11010100,B00010101},  // Threfore instead of using 24x48 matrix of ints each using 16 bits each the new matrix
-                     {B10100011,B10000001,B10001000,B10111101,B10000010,B10000101},  // uses 24x6 matrix of unsigned char using 8 bits each saving lots of Dynamic Memory
-                     {B10101000,B10111101,B10111101,B10100001,B10111000,B10111101},
-                     {B10101110,B00000101,B10100100,B10101011,B10101110,B10000001},
-                     {B10111011,B01110101,B10101111,B10111000,B00101011,B11110111},
-                     {B10001000,B00010100,B00100000,B10101101,B11000000,B11010001},
-                     {B11101111,B11111111,B11111110,B11101111,B11111101,B11011101},
-                     
-                     {B11101111,B11111111,B11111110,B11101111,B11111101,B11011101},  //Starts the 2nd Row of Panels
-                     {B10100010,B00010101,B11110000,B10000001,B10001101,B00010101},
-                     {B10001000,B11000000,B00010111,B11011100,B00100001,B01110101},
-                     {B11111111,B11111111,B11010010,B00000011,B11110111,B01000101},
-                     {B10000010,B00000011,B11011000,B11111001,B10000100,B01010001},
-                     {B10111011,B10111000,B00011011,B10111111,B10111101,B01010111},
-                     {B10100000,B00101011,B11110000,B10100001,B10000001,B00010001},
-                     {B10111111,B11101111,B11110111,B10111101,B11111111,B11111111},
-                     
-                     {B10111111,B11101111,B11110111,B10111101,B11111111,B11111111},  //Starts the 3rd Row of Panels
-                     {B10001100,B01000001,B10010000,B10101101,B10000000,B00000001},
-                     {B11100101,B01011101,B10111110,B10100001,B11101110,B00100011},
-                     {B11000101,B01010111,B10100010,B00101000,B00101000,B00100011},
-                     {B11010101,B00000100,B00001000,B11101011,B11101110,B11101111},
-                     {B10010101,B01010101,B11101111,B10001001,B10001000,B10101011},
-                     {B10100101,B01010001,B10000000,B00101011,B10001110,B11101111},
-                     {B11111111,B11111111,B11111111,B11111111,B11111111,B11111111}};
+int maze[][3]={{0b1111111111111111,0b1111111111111111,0b1111111111111111},  //Declare the matrix as unsigned char so that each value is stored in a single bit instead of 8 or 16
+               {0b1000110000110101,0b1010001000000001,0b1101010000010101},  // Threfore instead of using 24x48 matrix of ints each using 16 bits each the new matrix
+               {0b1010001110000001,0b1000100010111101,0b1000001010000101},  // uses 24x6 matrix of unsigned char using 8 bits each saving lots of Dynamic Memory
+               {0b1010100010111101,0b1011110110100001,0b1011100010111101},
+               {0b1010111000000101,0b1010010010101011,0b1010111010000001},
+               {0b1011101101110101,0b1010111110111000,0b0010101111110111},
+               {0b1000100000010100,0b0010000010101101,0b1100000011010001},
+               {0b1110111111111111,0b1111111011101111,0b1111110111011101},
+                 
+               {0b1110111111111111,0b1111111011101111,0b1111110111011101},  //Starts the 2nd Row of Panels
+               {0b1010001000010101,0b1111000010000001,0b1000110100010101},
+               {0b1000100011000000,0b0001011111011100,0b0010000101110101},
+               {0b1111111111111111,0b1101001000000011,0b1111011101000101},
+               {0b1000001000000011,0b1101100011111001,0b1000010001010001},
+               {0b1011101110111000,0b0001101110111111,0b1011110101010111},
+               {0b1010000000101011,0b1111000010100001,0b1000000100010001},
+               {0b1011111111101111,0b1111011110111101,0b1111111111111111},
+                 
+               {0b1011111111101111,0b1111011110111101,0b1111111111111111},  //Starts the 3rd Row of Panels
+               {0b1000110001000001,0b1001000010101101,0b1000000000000001},
+               {0b1110010101011101,0b1011111010100001,0b1110111000100011},
+               {0b1100010101010111,0b1010001000101000,0b0010100000100011},
+               {0b1101010100000100,0b0000100011101011,0b1110111011101111},
+               {0b1001010101010101,0b1110111110001001,0b1000100010101011},
+               {0b1010010101010001,0b1000000000101011,0b1000111011101111},
+               {0b1111111111111111,0b1111111111111111,0b1111111111111111}};
 
 enum direction{UP,DOWN,RIGHT,LEFT,NONE};
+
 void setup() {
    Serial.begin(9600);
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
@@ -98,8 +99,6 @@ void loop() {
   
   if(inputDirection != NONE){  //Upward Movement if Joystick is facing upwards!
     movePlayer(inputDirection);
-    display.display();
-    delay(150*SPEED_FACTOR);
     if(isOffScreen()){
       scrollScreen();
       }     
@@ -113,7 +112,6 @@ void loop() {
 direction getDirection(){
   int xInput = analogRead(ANALOGXPIN);
   int yInput = analogRead(ANALOGYPIN);
-
   if((yInput>500)&&(yInput<520)&&(xInput>1000))
     return UP;
   if((yInput>500)&&(yInput<520)&&(xInput<10))
@@ -128,7 +126,7 @@ direction getDirection(){
 void drawMaze(int y,int x,int originx, int originy){  //Function takes Current X and Y matrix values and origin from which to print their grids
 for(int mazeRow = 0;mazeRow<8;mazeRow++){
   for(int mazeColumn = 0;mazeColumn<16;mazeColumn++){
-    if(((maze[mazeRow+y][(x+mazeColumn/8)])&(1<<(7-mazeColumn%8)))){    //Uses bit masking to read the individual bit values in the matrix and test for 1s or 0s
+    if(((maze[mazeRow+y][x])&(1<<((INTBITS-1)-mazeColumn)))){    //Uses bit masking to read the individual bit values in the matrix and test for 1s or 0s
       display.fillRect(originx+mazeColumn*BLOCK_SIZE,originy+mazeRow*BLOCK_SIZE,BLOCK_SIZE,BLOCK_SIZE,WHITE);
       display.fillRect(originx+(mazeColumn*BLOCK_SIZE)+BLOCK_SIZE/4,originy+(mazeRow*BLOCK_SIZE)+BLOCK_SIZE/4,BLOCK_SIZE/2,BLOCK_SIZE/2,BLACK);
     }    
@@ -170,17 +168,19 @@ void movePlayer(direction playerDirection){
       playerX -= 1;
     drawPlayer();
   }
+  display.display();
+  delay(150/SPEED_FACTOR);
   return;
 }
 
 bool directionIsClear(direction playerDirection){
-  if((playerDirection==UP) && ((maze[(playerY-1+printOriginY)][(printOriginX+playerX/8)])&(1<<(7-playerX%8))))
+  if((playerDirection==UP) && ((maze[(playerY-1+printOriginY)][(printOriginX+playerX/INTBITS)])&(1<<((INTBITS-1)-playerX%INTBITS))))
     return false;
-  else if((playerDirection==DOWN) && ((maze[(playerY+1+printOriginY)][(printOriginX+playerX/8)])&(1<<(7-playerX%8))))
+  else if((playerDirection==DOWN) && ((maze[(playerY+1+printOriginY)][(printOriginX+playerX/INTBITS)])&(1<<((INTBITS-1)-playerX%INTBITS))))
     return false;
-  else if((playerDirection==RIGHT) && ((maze[(playerY+printOriginY)][(printOriginX+(playerX+1)/8)])&(1<<(7-(playerX+1)%8))))
+  else if((playerDirection==RIGHT) && ((maze[(playerY+printOriginY)][(printOriginX+(playerX+1)/INTBITS)])&(1<<((INTBITS-1)-(playerX+1)%INTBITS))))
     return false;
-  else if((playerDirection==LEFT) && ((maze[(playerY+printOriginY)][(printOriginX+(playerX-1)/8)])&(1<<(7-(playerX-1)%8))))
+  else if((playerDirection==LEFT) && ((maze[(playerY+printOriginY)][(printOriginX+(playerX-1)/INTBITS)])&(1<<((INTBITS-1)-(playerX-1)%INTBITS))))
     return false;
   else
     return true;
@@ -205,11 +205,11 @@ void scrollScreen(){
       drawMaze(printOriginY,printOriginX,m*BLOCK_SIZE*scrollDirection,0);
       playerX = playerX + scrollDirection;
       drawPlayer();
-      drawMaze(printOriginY,printOriginX+(-2*scrollDirection),(-128*scrollDirection)+(m*BLOCK_SIZE*scrollDirection),0);
+      drawMaze(printOriginY,printOriginX+(-1*scrollDirection),(-128*scrollDirection)+(m*BLOCK_SIZE*scrollDirection),0);
       display.display();
-      delay(100*SPEED_FACTOR);
+      delay(100/SPEED_FACTOR);
       }
-      printOriginX=printOriginX+-2*scrollDirection;
+      printOriginX=printOriginX+-1*scrollDirection;
       return;
   }
   else{
@@ -224,7 +224,7 @@ void scrollScreen(){
         drawPlayer();
         drawMaze(printOriginY,printOriginX,0,m*BLOCK_SIZE*scrollDirection);
         display.display();
-        delay(100*SPEED_FACTOR);
+        delay(100/SPEED_FACTOR);
         }
       printOriginY=printOriginY+-8*scrollDirection;
   }
@@ -245,11 +245,11 @@ bool gameIsFinished(){
 }
 
 void endGame(){
-  unsigned long t;
-  t= millis();
-  t= t/1000;
+  unsigned long totalTime;
+  totalTime= millis();
+  totalTime /=1000;
   char buf[8];
-  ltoa(t,buf,10);
+  ltoa(totalTime,buf,10);
   display.clearDisplay();                             //Prints Congratulations Message and User Score/Time in Seconds
   display.setTextSize(2); // Draw 2X-scale text
   display.setTextColor(WHITE);
