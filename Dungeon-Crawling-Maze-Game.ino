@@ -104,12 +104,10 @@ void loop() {
     movePlayer(inputDirection);
     if(isOffScreen()){
       scrollScreen();
-      }     
+      }  
+    if(gameIsFinished())
+      endGame();
     }
-
-  if(gameIsFinished()){ 
-    endGame();
-  }
 }
 
 direction getDirection(){  // Reads Analog stick x and y values, return intended direction
@@ -230,17 +228,17 @@ void scrollScreen(){  // Scroll the screen depending on where the player has mov
   }
 }
 
-void drawEnd(int originx,int originy){  // Draw ending flag
+void drawEnd(int originx,int originy){
   for(int endFigureRow=0;endFigureRow<BLOCK_SIZE;endFigureRow++){
-        for(int endFigureColumn=0;endFigureColumn<BLOCK_SIZE;endFigureColumn++){
-          if(endFigure[endFigureRow]&(1<<7-endFigureColumn)){  // Draws Flag From Matrix Peviously Defining 1s and 0s
-            display.drawPixel((endX*BLOCK_SIZE)+endFigureColumn+originx,(endY*BLOCK_SIZE)+endFigureRow+originy,WHITE);          
-          }
-        }
+    for(int endFigureColumn=0;endFigureColumn<BLOCK_SIZE;endFigureColumn++){
+      if(endFigure[endFigureRow]&(1<<7-endFigureColumn)){
+        display.drawPixel((endX*BLOCK_SIZE)+endFigureColumn+originx,(endY*BLOCK_SIZE)+endFigureRow+originy,WHITE);          
+      }
+    }
   }
 }
 
-bool gameIsFinished(){  // Check if player is on final position
+bool gameIsFinished(){ 
   return ((printOriginX==endXPanel) && (printOriginY==endYPanel) && (playerY==endY) && (playerX==endX));
 }
 
