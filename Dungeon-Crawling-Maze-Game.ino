@@ -1,6 +1,5 @@
 // Dungeon Crawling Maze Game 
 // Written By Jackson B. Gee
-// include drawPlayer in drawMaze to reduce total function calls.
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -12,7 +11,7 @@
 #define ANALOGYPIN 1 //analog pin connected to y output
 #define INTBITS 16
 // Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
-#define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
+#define OLED_RESET 4 // Reset pin # (or -1 if sharing Arduino reset pin)
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 int8_t SPEED_FACTOR = 1;
@@ -20,16 +19,16 @@ int8_t SPEED_FACTOR = 1;
 int8_t playerX = 11;       //Players position on screen. Initialized as starting Position
 int8_t playerY = 6;
 
-uint8_t endX = 3;              //Ending Position on screen
-uint8_t endY = 6; 
+int8_t endX = 3;              //Ending Position on screen
+int8_t endY = 6; 
 
-uint8_t endXPanel = 0;         //Top left corner position when ending exists
-uint8_t endYPanel = 16;
+int8_t endXPanel = 0;         //Top left corner position when ending exists
+int8_t endYPanel = 16;
 
-uint8_t printOriginX = 1;      //Must also declare the Top Left Corner of maze matrix when game starts
-uint8_t printOriginY = 16;
+int8_t printOriginX = 1;      //Must also declare the Top Left Corner of maze matrix when game starts
+int8_t printOriginY = 16;
 
-uint8_t player[8]={B00000000, //Declares the Matrix used to draw the player figure
+int8_t player[8]= {B00000000, //Declares the Matrix used to draw the player figure
                    B00011000,
                    B00011000,
                    B01111110,
@@ -38,14 +37,14 @@ uint8_t player[8]={B00000000, //Declares the Matrix used to draw the player figu
                    B01100110,
                    B00000000};
                         
-uint8_t end[8] = {B00000000, //Defines the Matrix used to draw the game end flag
-                  B00011110,
-                  B00011110,
-                  B00011110,
-                  B00010000,
-                  B00010000,
-                  B01111110,
-                  B00000000};
+int8_t endFigure[8]= {B00000000, //Defines the Matrix used to draw the game end flag
+                      B00011110,
+                      B00011110,
+                      B00011110,
+                      B00010000,
+                      B00010000,
+                      B01111110,
+                      B00000000};
     
 
                                
@@ -89,7 +88,6 @@ void setup() {
    drawMaze(printOriginY,printOriginX,0,0);
    drawPlayer();
    display.display();
-   delay(500);
  
 }
 
@@ -108,7 +106,7 @@ void loop() {
   }
 }
 
-direction getDirection(){ //
+direction getDirection(){ //Reads Analog stick x and y values, intended direction
   int xInput = analogRead(ANALOGXPIN);
   int yInput = analogRead(ANALOGYPIN);
   if((yInput>500)&&(yInput<524)&&(xInput>1000))
@@ -155,7 +153,7 @@ void drawPlayer(){                   //Function to Draw game player at players x
 }
 
 void movePlayer(direction playerDirection){ //takes intended movement, if that direction is clear, clears game player and redraws in new location
-  if(directionIsClear(playerDirection)){
+  if(isDirectionClear(playerDirection)){
     clearPlayer();
     if(playerDirection==UP)
       playerY -= 1;
@@ -172,7 +170,7 @@ void movePlayer(direction playerDirection){ //takes intended movement, if that d
   return;
 }
 
-bool directionIsClear(direction playerDirection){ //takes intended direction and return true if that direction is clear, false if there is a block in the way
+bool isDirectionClear(direction playerDirection){ //takes intended direction and return true if that direction is clear, false if there is a block in the way
   if((playerDirection==UP) && ((maze[(playerY-1+printOriginY)][(printOriginX+playerX/INTBITS)])&(1<<((INTBITS-1)-playerX%INTBITS))))
     return false;
   else if((playerDirection==DOWN) && ((maze[(playerY+1+printOriginY)][(printOriginX+playerX/INTBITS)])&(1<<((INTBITS-1)-playerX%INTBITS))))
@@ -192,7 +190,7 @@ bool isOffScreen(){ //checks if the player has moved outside the bounds of the s
     return false;
 }
 
-void scrollScreen(){  //scrolls the screen depending on where the player has moved
+void scrollScreen(){  //scrolls the screen depending on where the player has moved and updates current coordinates
   int8_t scrollDirection = 0;
   if((playerX==16)||(playerX==-1)){
     if(playerX==16)
@@ -232,7 +230,7 @@ void scrollScreen(){  //scrolls the screen depending on where the player has mov
 void drawEnd(int originx,int originy){ //draws ending flag
   for(int m=0;m<8;m++){
         for(int n=0;n<8;n++){
-          if(end[m]&(1<<7-n)){                //Draws Flag From Matrix Peviously Defining 1s and 0s
+          if(endFigure[m]&(1<<7-n)){                //Draws Flag From Matrix Peviously Defining 1s and 0s
             display.drawPixel((endX*BLOCK_SIZE)+n+originx,(endY*BLOCK_SIZE)+m+originy,WHITE);          
           }
         }
