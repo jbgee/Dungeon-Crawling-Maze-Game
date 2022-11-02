@@ -90,7 +90,7 @@ void setup() {
       for(;;);  // Don't proceed, loop forever
     }
 
-   display.clearDisplay();  // Clears Initial Display Then draws the Initial Maze Panel and Game Figure Location
+   display.clearDisplay(); 
    drawMaze(printOriginY,printOriginX,0,0);
    drawPlayer();
    display.display();
