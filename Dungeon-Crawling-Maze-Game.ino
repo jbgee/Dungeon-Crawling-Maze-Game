@@ -28,23 +28,23 @@ int8_t endYPanel = 16;
 int8_t printOriginX = 1;      //Must also declare the Top Left Corner of maze matrix when game starts
 int8_t printOriginY = 16;
 
-int8_t player[8]= {B00000000, //Declares the Matrix used to draw the player figure
-                   B00011000,
-                   B00011000,
-                   B01111110,
-                   B00011000,
-                   B00100100,
-                   B01100110,
-                   B00000000};
+int8_t player[8]= {0b00000000, //Declares the Matrix used to draw the player figure
+                   0b00011000,
+                   0b00011000,
+                   0b01111110,
+                   0b00011000,
+                   0b00100100,
+                   0b01100110,
+                   0b00000000};
                         
-int8_t endFigure[8]= {B00000000, //Defines the Matrix used to draw the game end flag
-                      B00011110,
-                      B00011110,
-                      B00011110,
-                      B00010000,
-                      B00010000,
-                      B01111110,
-                      B00000000};
+int8_t endFigure[8]= {0b00000000, //Defines the Matrix used to draw the game end flag
+                      0b00011110,
+                      0b00011110,
+                      0b00011110,
+                      0b00010000,
+                      0b00010000,
+                      0b01111110,
+                      0b00000000};
     
 
                                
