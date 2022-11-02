@@ -136,24 +136,21 @@ void drawMaze(int y,int x,int originx, int originy){  // Function takes Current 
   if((y==endYPanel)&&(x==endXPanel)){  // If printing Panel with ending, Prints the end in Final Position
     drawEnd(originx,originy);
   }
-  return;
 }
 
 void clearPlayer(){  // Clears an square equal to BLOCK_SIZE at player position
   display.fillRect(playerX*BLOCK_SIZE,playerY*BLOCK_SIZE,BLOCK_SIZE,BLOCK_SIZE,BLACK);
   display.display();
-  return;
 }
 
 void drawPlayer(){  // Function to Draw game player at players x,y coordinates on screen
   for(int playerRow=0;playerRow<BLOCK_SIZE;playerRow++){
-        for(int playerColumn=0;playerColumn<BLOCK_SIZE;playerColumn++){
-          if((player[playerRow])&(1<<7-playerColumn)){
-          display.drawPixel((playerX*BLOCK_SIZE)+playerColumn,(playerY*BLOCK_SIZE)+playerRow,WHITE);
-          }
-        }
+    for(int playerColumn=0;playerColumn<BLOCK_SIZE;playerColumn++){
+      if((player[playerRow])&(1<<7-playerColumn)){
+      display.drawPixel((playerX*BLOCK_SIZE)+playerColumn,(playerY*BLOCK_SIZE)+playerRow,WHITE);
+      }
+    }
   }
-  return;
 }
 
 void movePlayer(direction playerDirection){  // Takes intended movement, if that direction is clear, clears game player and redraws in new location
@@ -171,7 +168,6 @@ void movePlayer(direction playerDirection){  // Takes intended movement, if that
   }
   display.display();
   delay(150/SPEED_FACTOR);
-  return;
 }
 
 bool isDirectionClear(direction playerDirection){  // Takes intended direction and return true if that direction is clear, false if there is a block in the way
