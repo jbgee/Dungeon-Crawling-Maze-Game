@@ -7,6 +7,8 @@
 #define SCREEN_WIDTH 128  // OLED display width, in pixels
 #define SCREEN_HEIGHT 64  // OLED display height, in pixels
 #define BLOCK_SIZE 8  // Number of pixels in maze block. Unit size on screen
+#define HALF_BLOCK BLOCK_SIZE/2
+#define QUARTER_BLOCK BLOCK_SIZE/4
 #define ANALOGXPIN 0  // analog pin connected to x output 
 #define ANALOGYPIN 1  // analog pin connected to y output
 #define INTBITS 16
@@ -127,9 +129,12 @@ direction getDirection(){  // Reads Analog stick x and y values, return intended
 void drawMaze(int y,int x,int originx, int originy){  // Function takes Current X and Y matrix values and origin from which to print their grids
   for(int mazeRow = 0;mazeRow<SCREEN_HEIGHT/BLOCK_SIZE;mazeRow++){
     for(int mazeColumn = 0;mazeColumn<SCREEN_WIDTH/BLOCK_SIZE;mazeColumn++){
-      if(((maze[mazeRow+y][x])&(1<<((INTBITS-1)-mazeColumn)))){  // Uses bit masking to read the individual bit values in the matrix and test for 1s or 0s
-        display.fillRect(originx+mazeColumn*BLOCK_SIZE,originy+mazeRow*BLOCK_SIZE,BLOCK_SIZE,BLOCK_SIZE,WHITE);
-        display.fillRect(originx+(mazeColumn*BLOCK_SIZE)+BLOCK_SIZE/4,originy+(mazeRow*BLOCK_SIZE)+BLOCK_SIZE/4,BLOCK_SIZE/2,BLOCK_SIZE/2,BLACK);
+      int8_t bitToCheck = INTBITS-1-mazeColumn;
+      if(((maze[mazeRow+y][x])&(1<<bitToCheck))){  // Uses bit masking to read the individual bit values in the matrix and test for 1s or 0s
+        int8_t xDrawingOrigin = originx+mazeColumn*BLOCK_SIZE;
+        int8_t yDrawingOrigin = originy+mazeRow*BLOCK_SIZE;
+        display.fillRect(xDrawingOrigin,yDrawingOrigin,BLOCK_SIZE,BLOCK_SIZE,WHITE);
+        display.fillRect(xDrawingOrigin+QUARTER_BLOCK,yDrawingOrigin+QUARTER_BLOCK,HALF_BLOCK,HALF_BLOCK,BLACK);
       }    
     }
   }
@@ -146,7 +151,8 @@ void clearPlayer(){  // Clears an square equal to BLOCK_SIZE at player position
 void drawPlayer(){  // Function to Draw game player at players x,y coordinates on screen
   for(int playerRow=0;playerRow<BLOCK_SIZE;playerRow++){
     for(int playerColumn=0;playerColumn<BLOCK_SIZE;playerColumn++){
-      if((player[playerRow])&(1<<7-playerColumn)){
+      int8_t bitToCheck = BLOCK_SIZE -playerColumn -1;
+      if((player[playerRow])&(1<<bitToCheck)){
       display.drawPixel((playerX*BLOCK_SIZE)+playerColumn,(playerY*BLOCK_SIZE)+playerRow,WHITE);
       }
     }
@@ -199,7 +205,7 @@ void scrollScreen(){  // Scroll the screen depending on where the player has mov
       drawMaze(printOriginY,printOriginX,scrollStep*BLOCK_SIZE*scrollDirection,0);
       playerX = playerX + scrollDirection;
       drawPlayer();
-      drawMaze(printOriginY,printOriginX+(-1*scrollDirection),(-128*scrollDirection)+(scrollStep*BLOCK_SIZE*scrollDirection),0);
+      drawMaze(printOriginY,printOriginX+(-1*scrollDirection),(-1*SCREEN_WIDTH*scrollDirection)+(scrollStep*BLOCK_SIZE*scrollDirection),0);
       display.display();
       delay(100/SPEED_FACTOR);
       }
@@ -213,7 +219,7 @@ void scrollScreen(){  // Scroll the screen depending on where the player has mov
       scrollDirection = 1;
     for(int scrollStep=1;scrollStep<=SCREEN_HEIGHT/BLOCK_SIZE;scrollStep++){
         display.clearDisplay();
-        drawMaze(printOriginY+-8*scrollDirection,printOriginX,0,(-64*scrollDirection)+scrollStep*BLOCK_SIZE*scrollDirection);
+        drawMaze(printOriginY+-1*BLOCK_SIZE*scrollDirection,printOriginX,0,(-1*SCREEN_HEIGHT*scrollDirection)+scrollStep*BLOCK_SIZE*scrollDirection);
         playerY = playerY + scrollDirection;
         drawPlayer();
         drawMaze(printOriginY,printOriginX,0,scrollStep*BLOCK_SIZE*scrollDirection);
@@ -227,7 +233,8 @@ void scrollScreen(){  // Scroll the screen depending on where the player has mov
 void drawEnd(int originx,int originy){
   for(int endFigureRow=0;endFigureRow<BLOCK_SIZE;endFigureRow++){
     for(int endFigureColumn=0;endFigureColumn<BLOCK_SIZE;endFigureColumn++){
-      if(endFigure[endFigureRow]&(1<<7-endFigureColumn)){
+      int8_t bitToCheck = BLOCK_SIZE - endFigureColumn -1;
+      if(endFigure[endFigureRow]&(1<<bitToCheck)){
         display.drawPixel((endX*BLOCK_SIZE)+endFigureColumn+originx,(endY*BLOCK_SIZE)+endFigureRow+originy,WHITE);          
       }
     }
